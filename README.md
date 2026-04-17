@@ -149,4 +149,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Who makes this
 
-Maintained by [Manaira Labs](https://manairalabs.com). We build AI products and consult for Indonesian businesses. Also check out [Bicara](https://bicara.ai), our AI-native ERP platform.
+Maintained by [Manaira Labs](https://manairalabs.com). We build AI products and consult for Indonesian businesses. Also check out [Bicara Business Platform](https://bicara.ai), our AI-native platform for Indonesian SMBs.

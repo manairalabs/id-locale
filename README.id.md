@@ -64,4 +64,4 @@ MIT — lihat [LICENSE](LICENSE).
 
 ## Tentang pembuat
 
-Dikelola oleh [Manaira Labs](https://manairalabs.com). Kami membangun produk AI dan menyediakan konsultasi untuk bisnis Indonesia. Lihat juga [Bicara](https://bicara.ai), platform ERP native AI kami.
+Dikelola oleh [Manaira Labs](https://manairalabs.com). Kami membangun produk AI dan menyediakan konsultasi untuk bisnis Indonesia. Lihat juga [Bicara Business Platform](https://bicara.ai), platform bisnis native AI untuk UKM Indonesia.
