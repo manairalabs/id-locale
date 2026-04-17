@@ -1,0 +1,65 @@
+{
+  "name": "@manairalabs/id-locale",
+  "version": "0.1.0",
+  "description": "Indonesian locale utilities for TypeScript: IDR formatting, NPWP/NIK validation, phone normalization, PPN/PPh tax math, terbilang",
+  "keywords": [
+    "indonesia",
+    "indonesian",
+    "locale",
+    "idr",
+    "rupiah",
+    "npwp",
+    "nik",
+    "ktp",
+    "ppn",
+    "pph",
+    "pajak",
+    "terbilang",
+    "typescript"
+  ],
+  "homepage": "https://github.com/manairalabs/id-locale",
+  "bugs": "https://github.com/manairalabs/id-locale/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manairalabs/id-locale.git"
+  },
+  "license": "MIT",
+  "author": "Manaira Labs <hi@manairalabs.com> (https://manairalabs.com)",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.id.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'add eslint later'",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
