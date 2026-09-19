@@ -25,6 +25,9 @@
   },
   "license": "MIT",
   "author": "Manaira Labs <manairadm@gmail.com> (https://manairalabs.com)",
+  "contributors": [
+    "Nurul Arif Setiawan <n.arif.setiawan@gmail.com> (https://github.com/arifsetiawan)"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
