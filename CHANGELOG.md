@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `terbilang(n, { rupiah: true })` carries 100 sen into the next rupiah (`1.999` → `"dua rupiah"`).
+
 ## [0.1.0] - 2026-04-17
 
 ### Added
