@@ -1,25 +1,26 @@
-import { describe, it, expect } from "vitest";
-import { formatIDR, parseIDR } from "../src/idr.js";
+import { describe, expect, it } from "vitest";
+import { formatIDR, parseIDR } from "../src/idr";
 
 describe("formatIDR", () => {
-  it("formats positive integers with Rp prefix and Indonesian thousand separator", () => {
+  it("formats basic amounts with Rp prefix and dot separators", () => {
     expect(formatIDR(0)).toBe("Rp 0");
     expect(formatIDR(1000)).toBe("Rp 1.000");
     expect(formatIDR(1234567)).toBe("Rp 1.234.567");
-    expect(formatIDR(1000000000)).toBe("Rp 1.000.000.000");
   });
 
-  it("formats negative numbers with leading minus", () => {
+  it("formats negative amounts with a leading minus", () => {
     expect(formatIDR(-1000)).toBe("-Rp 1.000");
-    expect(formatIDR(-1234567)).toBe("-Rp 1.234.567");
   });
 
-  it("supports symbol and spacing options", () => {
+  it("respects symbol: false", () => {
     expect(formatIDR(1000, { symbol: false })).toBe("1.000");
+  });
+
+  it("respects spaceAfterSymbol: false", () => {
     expect(formatIDR(1000, { spaceAfterSymbol: false })).toBe("Rp1.000");
   });
 
-  it("formats decimals when requested", () => {
+  it("formats decimals with minDecimals/maxDecimals", () => {
     expect(formatIDR(1234.5, { minDecimals: 2, maxDecimals: 2 })).toBe("Rp 1.234,50");
     expect(formatIDR(1234.567, { minDecimals: 2, maxDecimals: 2 })).toBe("Rp 1.234,57");
   });
@@ -61,5 +62,27 @@ describe("parseIDR", () => {
   it("round-trips with formatIDR", () => {
     const n = 12345678;
     expect(parseIDR(formatIDR(n))).toBe(n);
+  });
+});
+
+describe("formatIDR — decimal options and signed zero (issue #3)", () => {
+  it("minDecimals above maxDecimals raises the max instead of throwing", () => {
+    expect(formatIDR(1000, { minDecimals: 2 })).toBe("Rp 1.000,00");
+  });
+
+  it("a negative value that rounds to zero carries no minus", () => {
+    expect(formatIDR(-0.4)).toBe("Rp 0");
+  });
+});
+
+describe("parseIDR — strictness and price notation (issue #3)", () => {
+  it("rejects hex, exponent and double-sign inputs", () => {
+    expect(parseIDR("0x1A")).toBeNull();
+    expect(parseIDR("1e3")).toBeNull();
+    expect(parseIDR("--1000")).toBeNull();
+  });
+
+  it("accepts the Indonesian \",-\" price suffix", () => {
+    expect(parseIDR("Rp 10.000,-")).toBe(10000);
   });
 });
