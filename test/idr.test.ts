@@ -1,26 +1,25 @@
-import { describe, expect, it } from "vitest";
-import { formatIDR, parseIDR } from "../src/idr";
+import { describe, it, expect } from "vitest";
+import { formatIDR, parseIDR } from "../src/idr.js";
 
 describe("formatIDR", () => {
-  it("formats basic amounts with Rp prefix and dot separators", () => {
+  it("formats positive integers with Rp prefix and Indonesian thousand separator", () => {
     expect(formatIDR(0)).toBe("Rp 0");
     expect(formatIDR(1000)).toBe("Rp 1.000");
     expect(formatIDR(1234567)).toBe("Rp 1.234.567");
+    expect(formatIDR(1000000000)).toBe("Rp 1.000.000.000");
   });
 
-  it("formats negative amounts with a leading minus", () => {
+  it("formats negative numbers with leading minus", () => {
     expect(formatIDR(-1000)).toBe("-Rp 1.000");
+    expect(formatIDR(-1234567)).toBe("-Rp 1.234.567");
   });
 
-  it("respects symbol: false", () => {
+  it("supports symbol and spacing options", () => {
     expect(formatIDR(1000, { symbol: false })).toBe("1.000");
-  });
-
-  it("respects spaceAfterSymbol: false", () => {
     expect(formatIDR(1000, { spaceAfterSymbol: false })).toBe("Rp1.000");
   });
 
-  it("formats decimals with minDecimals/maxDecimals", () => {
+  it("formats decimals when requested", () => {
     expect(formatIDR(1234.5, { minDecimals: 2, maxDecimals: 2 })).toBe("Rp 1.234,50");
     expect(formatIDR(1234.567, { minDecimals: 2, maxDecimals: 2 })).toBe("Rp 1.234,57");
   });
