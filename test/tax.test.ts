@@ -57,3 +57,10 @@ describe("PPh21", () => {
     expect(() => PPh21.calc({ monthlyGross: -1 })).toThrow(RangeError);
   });
 });
+
+describe("PPh21 — BPJS input validation (issue #3)", () => {
+  it("rejects NaN and negative BPJS contributions", () => {
+    expect(() => PPh21.calc({ monthlyGross: 10_000_000, bpjsKesehatan: NaN })).toThrow(RangeError);
+    expect(() => PPh21.calc({ monthlyGross: 10_000_000, bpjsKetenagakerjaan: -1 })).toThrow(RangeError);
+  });
+});
