@@ -56,6 +56,11 @@ describe("terbilang", () => {
     );
   });
 
+    it("carries rounded sen into rupiah when sen reaches 100", () => {
+          expect(terbilang(1.999, { rupiah: true })).toBe("dua rupiah");
+          expect(terbilang(0.999, { rupiah: true })).toBe("satu rupiah");
+    });
+  
   it("rupiah mode without sen when fractional is zero", () => {
     expect(terbilang(1000, { rupiah: true })).toBe("seribu rupiah");
   });
