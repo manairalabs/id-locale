@@ -1,7 +1,7 @@
 /**
  * Convert a non-negative integer into Bahasa Indonesia words.
  *
- * Supports numbers up to 999,999,999,999,999 (just under one quadrillion).
+ * Supports numbers up to 999,999,999,999,999,999 (just under one quintillion).
  * Negative numbers are prefixed with "minus".
  * Decimals are truncated unless `fractional` is provided via the rupiah mode.
  */
@@ -39,6 +39,7 @@ function groups(n: bigint): string {
   if (n === 0n) return "nol";
 
   const units: Array<{ name: string; value: bigint }> = [
+    { name: "kuadriliun", value: 1_000_000_000_000_000n },
     { name: "triliun", value: 1_000_000_000_000n },
     { name: "miliar", value: 1_000_000_000n },
     { name: "juta", value: 1_000_000n },
@@ -98,8 +99,11 @@ export function terbilang(value: number, options: TerbilangOptions = {}): string
   const whole = BigInt(Math.trunc(abs));
   const fractional = Math.round((abs - Math.trunc(abs)) * 100);
 
+  // A value that renders as zero (e.g. -0.4 without sen) carries no minus.
+  const rendersZero = whole === 0n && (!rupiah || !includeSen || fractional === 0);
+
   let out = groups(whole);
-  if (negative) out = `minus ${out}`;
+  if (negative && !rendersZero) out = `minus ${out}`;
 
   if (rupiah) {
     out += " rupiah";
