@@ -4,7 +4,9 @@
  * Accepted inputs:
  *   "081234567890", "+6281234567890", "6281234567890", "81234567890"
  *   with or without spaces, dashes, dots, or parentheses
+ *
  * Canonical output: "+62" followed by the national digits, e.g. "+6281234567890".
+ *
  * Returns null for inputs that cannot plausibly be Indonesian numbers.
  */
 
@@ -17,6 +19,7 @@ export interface NormalizePhoneOptions {
 
 /**
  * Normalize an Indonesian phone number.
+ *
  * @example
  * normalizePhone("08123 4567 890")        // "+6281234567890"
  * normalizePhone("+62-812-3456-7890")     // "+6281234567890"
@@ -29,6 +32,7 @@ export function normalizePhone(
   options: NormalizePhoneOptions = {},
 ): string | null {
   if (typeof input !== "string") return null;
+
   // Strip everything except digits and a leading +
   let cleaned = input.trim().replace(/[\s().\-]/g, "");
   const hasPlus = cleaned.startsWith("+");
@@ -59,7 +63,7 @@ export function normalizePhone(
     case "national":
       return national;
     case "international":
-      return `+${ID_CC}${national.slice(1)}`;
+      return `+${ID_CC} ${national.slice(1)}`;
     case "e164":
     default:
       return `+${ID_CC}${national.slice(1)}`;
