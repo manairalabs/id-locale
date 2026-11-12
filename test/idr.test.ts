@@ -63,3 +63,25 @@ describe("parseIDR", () => {
     expect(parseIDR(formatIDR(n))).toBe(n);
   });
 });
+
+describe("formatIDR — decimal options and signed zero (issue #3)", () => {
+  it("minDecimals above maxDecimals raises the max instead of throwing", () => {
+    expect(formatIDR(1000, { minDecimals: 2 })).toBe("Rp 1.000,00");
+  });
+
+  it("a negative value that rounds to zero carries no minus", () => {
+    expect(formatIDR(-0.4)).toBe("Rp 0");
+  });
+});
+
+describe("parseIDR — strictness and price notation (issue #3)", () => {
+  it("rejects hex, exponent and double-sign inputs", () => {
+    expect(parseIDR("0x1A")).toBeNull();
+    expect(parseIDR("1e3")).toBeNull();
+    expect(parseIDR("--1000")).toBeNull();
+  });
+
+  it("accepts the Indonesian \",-\" price suffix", () => {
+    expect(parseIDR("Rp 10.000,-")).toBe(10000);
+  });
+});

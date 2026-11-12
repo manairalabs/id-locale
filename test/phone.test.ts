@@ -34,3 +34,13 @@ describe("normalizePhone", () => {
     expect(normalizePhone("0")).toBeNull();
   });
 });
+
+describe("normalizePhone — foreign numbers and trunk zero (issue #3)", () => {
+  it("does not rewrite foreign numbers to +62", () => {
+    expect(normalizePhone("+1 415 555 1234")).toBeNull();
+  });
+
+  it("drops the trunk 0 written after the country code", () => {
+    expect(normalizePhone("+62 0812-3456-7890")).toBe("+6281234567890");
+  });
+});
