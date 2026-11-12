@@ -32,13 +32,19 @@ export function formatIDR(value: number, options: FormatIDROptions = {}): string
     throw new TypeError(`formatIDR expected a finite number, got ${value}`);
   }
 
-  const negative = value < 0;
   const abs = Math.abs(value);
 
+  // Intl requires min <= max; a lone minDecimals raises the max to match.
+  const minDec = Math.max(0, minDecimals);
+  const maxDec = Math.max(minDec, maxDecimals);
+
   const formatted = new Intl.NumberFormat("id-ID", {
-    minimumFractionDigits: minDecimals,
-    maximumFractionDigits: maxDecimals,
+    minimumFractionDigits: minDec,
+    maximumFractionDigits: maxDec,
   }).format(abs);
+
+  // A value that rounds to zero (e.g. -0.4) is not shown as negative.
+  const negative = value < 0 && /[1-9]/.test(formatted);
 
   const prefix = symbol ? (spaceAfterSymbol ? "Rp " : "Rp") : "";
   return `${negative ? "-" : ""}${prefix}${formatted}`;
@@ -68,6 +74,9 @@ export function parseIDR(input: string): number | null {
   // Strip currency prefix/suffix
   s = s.replace(/^rp\.?\s*/i, "").replace(/\s*rupiah$/i, "").trim();
 
+  // Indonesian price notation "10.000,-" means exactly 10000.
+  if (s.endsWith(",-")) s = s.slice(0, -2).trim();
+
   if (!s) return null;
 
   // If both "." and "," present, the right-most one is the decimal separator.
@@ -95,6 +104,10 @@ export function parseIDR(input: string): number | null {
     // "1.500" → 1500, "1.5" could be ambiguous; we default to thousands in this locale.
     normalized = s.replace(/\./g, "");
   }
+
+  // Strict numeric shape only: rejects hex ("0x1A"), exponents ("1e3"),
+  // stray signs ("--1000") and other Number() leniencies.
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
 
   const n = Number(normalized);
   if (!Number.isFinite(n)) return null;
