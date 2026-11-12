@@ -66,63 +66,76 @@ export const PPH21_BRACKETS_2023 = [
 
 export namespace PPh21 {
   export interface CalcInput {
-    /** Gross monthly salary in IDR. */
+    /** Monthly gross salary before deductions. */
     monthlyGross: number;
-    /** Marital / dependent status. Default: "TK/0". */
+    /** Marital status: TK/0, TK/1..3, K/0, K/1..3. */
     status?: "TK/0" | "TK/1" | "TK/2" | "TK/3" | "K/0" | "K/1" | "K/2" | "K/3";
-    /** Monthly BPJS Kesehatan employee contribution deducted from gross. Default: 0. */
+    /** Employee contribution to BPJS Kesehatan (health). */
     bpjsKesehatan?: number;
-    /** Monthly BPJS Ketenagakerjaan employee contribution deducted from gross. Default: 0. */
+    /** Employee contribution to BPJS Ketenagakerjaan (employment). */
     bpjsKetenagakerjaan?: number;
-    /** Employee has no NPWP (applies 20% surcharge). Default: false. */
-    noNPWP?: boolean;
-    /** Jabatan cost cap (5% of gross, capped at 500k/month). Enabled by default. */
-    applyBiayaJabatan?: boolean;
   }
 
   export interface CalcResult {
+    monthlyGross: number;
     annualGross: number;
-    annualTaxable: number;
     ptkp: number;
+    annualNetTaxable: number;
     annualTax: number;
     monthlyTax: number;
-    noNPWPSurcharge: number;
   }
 
-  function ptkpFor(status: string): number {
-    const married = status.startsWith("K/");
-    const dep = Number(status.split("/")[1] ?? "0");
-    const capped = Math.min(dep, 3);
-    return PTKP_ANNUAL.base + (married ? PTKP_ANNUAL.married : 0) + capped * PTKP_ANNUAL.perDependent;
+  /**
+   * Resolve the PTKP for the given status string.
+   */
+  function ptkpFor(status: CalcInput["status"]): number {
+    const { base, married, perDependent } = PTKP_ANNUAL;
+    switch (status) {
+      case "TK/1":
+        return base + perDependent;
+      case "TK/2":
+        return base + 2 * perDependent;
+      case "TK/3":
+        return base + 3 * perDependent;
+      case "K/0":
+        return base + married;
+      case "K/1":
+        return base + married + perDependent;
+      case "K/2":
+        return base + married + 2 * perDependent;
+      case "K/3":
+        return base + married + 3 * perDependent;
+      case "TK/0":
+      default:
+        return base;
+    }
   }
 
+  /**
+   * Apply progressive annual brackets to annual tax-free income.
+   */
   function applyBrackets(annualTaxable: number): number {
-    if (annualTaxable <= 0) return 0;
-    let remaining = annualTaxable;
-    let prev = 0;
     let tax = 0;
+    let prev = 0;
     for (const b of PPH21_BRACKETS_2023) {
-      const slice = Math.min(remaining, b.upTo - prev);
-      if (slice > 0) {
-        tax += slice * b.rate;
-        remaining -= slice;
-      }
-      if (remaining <= 0) break;
+      if (annualTaxable <= prev) break;
+      const taxableInBracket = Math.min(annualTaxable, b.upTo) - prev;
+      tax += taxableInBracket * b.rate;
       prev = b.upTo;
     }
     return tax;
   }
 
   /**
-   * Calculate monthly PPh 21 for an employee.
+   * Calculate estimated PPh 21 for one month.
    *
-   * Notes:
-   *  - Uses the traditional progressive-bracket method (not the TER simplified rate).
-   *    TER (tarif efektif rata-rata) introduced in Jan 2024 is used by employers for
-   *    monthly withholding, while the annual reconciliation still uses brackets.
-   *    If you specifically need TER rates, compute them separately.
-   *  - Biaya Jabatan (job expense deduction) defaults on: 5% of annual gross capped at 6M.
-   *  - Non-NPWP employees pay a 20% surcharge on the computed PPh 21.
+   * This is a simplified non-TER (Tarif Efektif Rata-rata) calc:
+   * monthlyGross × 12 − minus 12 months of BPJS contributions − PTKP → PKP,
+   * then annual brackets apply and the annual tax is spread over 12 months.
+   *
+   * @example
+   * PPh21.calc({ monthlyGross: 10_000_000 })                              // TK/0 default
+   * PPh21.calc({ monthlyGross: 10_000_000, status: "K/1", bpjsKesehatan: 100_000 })
    */
   export function calc(input: CalcInput): CalcResult {
     const {
@@ -130,41 +143,33 @@ export namespace PPh21 {
       status = "TK/0",
       bpjsKesehatan = 0,
       bpjsKetenagakerjaan = 0,
-      noNPWP = false,
-      applyBiayaJabatan = true,
     } = input;
 
     if (!Number.isFinite(monthlyGross) || monthlyGross < 0) {
       throw new RangeError(`PPh21.calc: monthlyGross must be non-negative, got ${monthlyGross}`);
     }
-
-    const annualGross = monthlyGross * 12;
-
-    const biayaJabatan = applyBiayaJabatan
-      ? Math.min(annualGross * 0.05, 6_000_000)
-      : 0;
-
-    const annualBpjs = (bpjsKesehatan + bpjsKetenagakerjaan) * 12;
-
-    const netAnnual = Math.max(0, annualGross - biayaJabatan - annualBpjs);
-    const ptkp = ptkpFor(status);
-    const annualTaxable = Math.max(0, netAnnual - ptkp);
-
-    let annualTax = applyBrackets(annualTaxable);
-
-    let noNPWPSurcharge = 0;
-    if (noNPWP) {
-      noNPWPSurcharge = annualTax * 0.2;
-      annualTax += noNPWPSurcharge;
+    if (!Number.isFinite(bpjsKesehatan) || bpjsKesehatan < 0) {
+      throw new RangeError(`PPh21.calc: bpjsKesehatan must be non-negative, got ${bpjsKesehatan}`);
+    }
+    if (!Number.isFinite(bpjsKetenagakerjaan) || bpjsKetenagakerjaan < 0) {
+      throw new RangeError(`PPh21.calc: bpjsKetenagakerjaan must be non-negative, got ${bpjsKetenagakerjaan}`);
     }
 
+    const ptkp = ptkpFor(status);
+    const annualGross = monthlyGross * 12;
+    const annualNetTaxable = Math.max(
+      0,
+      annualGross - (bpjsKesehatan + bpjsKetenagakerjaan) * 12 - ptkp,
+    );
+    const annualTax = applyBrackets(annualNetTaxable);
+
     return {
+      monthlyGross,
       annualGross,
-      annualTaxable,
       ptkp,
-      annualTax: Math.round(annualTax),
-      monthlyTax: Math.round(annualTax / 12),
-      noNPWPSurcharge: Math.round(noNPWPSurcharge),
+      annualNetTaxable,
+      annualTax,
+      monthlyTax: annualTax / 12,
     };
   }
 }
