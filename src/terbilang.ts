@@ -98,11 +98,11 @@ export function terbilang(value: number, options: TerbilangOptions = {}): string
   let whole = BigInt(Math.trunc(abs));
   let fractional = Math.round((abs - Math.trunc(abs)) * 100);
 
-    // Rounded sen can reach 100 (e.g. 1.999): carry it into the rupiah part.
-    if (fractional === 100) {
-          whole += 1n;
-          fractional = 0;
-    }
+  // .995 and up rounds to 100 sen, which is one more rupiah
+  if (rupiah && includeSen && fractional === 100) {
+    whole += 1n;
+    fractional = 0;
+  }
 
   let out = groups(whole);
   if (negative) out = `minus ${out}`;
