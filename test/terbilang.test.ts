@@ -66,3 +66,17 @@ describe("terbilang", () => {
     expect(terbilang(1000, { rupiah: true })).toBe("seribu rupiah");
   });
 });
+
+
+describe("rounded sen carry boundaries", () => {
+  it("carries the original contributor examples", () => {
+    expect(terbilang(1.999, { rupiah: true })).toBe("dua rupiah");
+    expect(terbilang(0.999, { rupiah: true })).toBe("satu rupiah");
+    expect(terbilang(-1.999, { rupiah: true })).toBe("minus dua rupiah");
+  });
+
+  it("preserves truncation outside rupiah mode with sen enabled", () => {
+    expect(terbilang(1.999)).toBe("satu");
+    expect(terbilang(1.999, { rupiah: true, includeSen: false })).toBe("satu rupiah");
+  });
+});
