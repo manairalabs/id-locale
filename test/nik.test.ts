@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { validateNIK, parseNIK } from "../src/nik.js";
 
 describe("validateNIK", () => {
@@ -42,5 +42,26 @@ describe("parseNIK", () => {
 
   it("returns null for invalid NIK", () => {
     expect(parseNIK("invalid")).toBeNull();
+  });
+});
+
+describe("validateNIK — real calendar dates (issue #3)", () => {
+  it("rejects non-existent dates instead of rolling over", () => {
+    expect(validateNIK("3201013102900001")).toBe(false); // 31 Feb 1990
+    expect(validateNIK("3201012902010001")).toBe(false); // 29 Feb 2001 (not a leap year)
+    expect(validateNIK("3201013104990001")).toBe(false); // 31 Apr 1999
+  });
+
+  it("accepts 29 Feb in a leap year", () => {
+    expect(validateNIK("3201012902000001")).toBe(true); // 29 Feb 2000
+  });
+});
+
+describe("parseNIK — century pivot (issue #3)", () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-22T00:00:00Z")); });
+  afterEach(() => vi.useRealTimers());
+  it("a birth date in the future resolves to the previous century", () => {
+    const parsed = parseNIK("3201010112260001"); // 1 Dec, YY=26
+    expect(parsed?.birthDate.getUTCFullYear()).toBe(1926);
   });
 });

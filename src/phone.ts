@@ -39,9 +39,15 @@ export function normalizePhone(
   if (hasPlus) cleaned = cleaned.slice(1);
   if (!/^\d+$/.test(cleaned)) return null;
 
+  // An explicit international prefix for another country is not Indonesian.
+  if (hasPlus && !cleaned.startsWith(ID_CC)) return null;
+
   let national: string;
   if (cleaned.startsWith(ID_CC)) {
-    national = "0" + cleaned.slice(2);
+    let rest = cleaned.slice(2);
+    // Drop a trunk 0 written after the country code ("+62 0812-...").
+    if (rest.startsWith("0")) rest = rest.slice(1);
+    national = "0" + rest;
   } else if (cleaned.startsWith("0")) {
     national = cleaned;
   } else {

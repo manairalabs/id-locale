@@ -11,6 +11,7 @@
  *   NNNN = sequential number within the registration unit
  *
  * Century heuristic: if YY <= current two-digit year, assume 2000s; otherwise 1900s.
+ * A resolved date in the future steps back a century.
  */
 
 export interface ParsedNIK {
@@ -31,8 +32,35 @@ export function normalizeNIK(input: string): string {
 }
 
 /**
- * Validate that the input is a 16-digit numeric string with a plausible
- * birth date and month. Format-only; does not verify registry.
+ * Resolve the birth date encoded in a NIK's DDMMYY segment.
+ *
+ * Century heuristic: if YY <= current two-digit year, assume 2000s;
+ * otherwise 1900s. If that date is still in the future, step back a
+ * century (a NIK cannot encode a birth that has not happened yet).
+ *
+ * Returns null when the day/month do not form a real calendar date
+ * (e.g. 31 February rolls over to March and is rejected).
+ */
+function resolveBirthDate(day: number, month: number, yy: number): Date | null {
+  const now = new Date();
+  const nowYY = now.getUTCFullYear() % 100;
+  let year = (yy <= nowYY ? 2000 : 1900) + yy;
+
+  let date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getTime() > now.getTime()) {
+    year -= 100;
+    date = new Date(Date.UTC(year, month - 1, day));
+  }
+
+  const valid =
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+  return valid ? date : null;
+}
+
+/**
+ * Validate that the input is a 16-digit numeric string with a real calendar birth date. Format-only; does not verify registry.
  */
 export function validateNIK(input: string): boolean {
   const d = normalizeNIK(input);
@@ -46,8 +74,8 @@ export function validateNIK(input: string): boolean {
   const month = Number(d.slice(8, 10));
   if (month < 1 || month > 12) return false;
 
-  // Year is two-digit; we cannot fully validate without context, so accept 00-99
-  return true;
+  const yy = Number(d.slice(10, 12));
+  return resolveBirthDate(day, month, yy) !== null;
 }
 
 /**
@@ -69,12 +97,8 @@ export function parseNIK(input: string): ParsedNIK | null {
   const month = Number(d.slice(8, 10));
   const yy = Number(d.slice(10, 12));
 
-  // Century heuristic: current 2-digit year boundary
-  const nowYY = new Date().getUTCFullYear() % 100;
-  const century = yy <= nowYY ? 2000 : 1900;
-  const year = century + yy;
-
-  const birthDate = new Date(Date.UTC(year, month - 1, day));
+  // validateNIK passed, so the date resolves; the fallback never triggers.
+  const birthDate = resolveBirthDate(day, month, yy) ?? new Date(Date.UTC(1900 + yy, month - 1, day));
 
   return {
     provinceCode,

@@ -80,3 +80,14 @@ describe("rounded sen carry boundaries", () => {
     expect(terbilang(1.999, { rupiah: true, includeSen: false })).toBe("satu rupiah");
   });
 });
+
+describe("terbilang — scales and signed zero (issue #3)", () => {
+  it("spells the kuadriliun scale", () => {
+    expect(terbilang(1e15)).toBe("satu kuadriliun");
+  });
+
+  it("a negative value that renders as zero carries no minus", () => {
+    expect(terbilang(-0.4)).toBe("nol");
+    expect(terbilang(-0.4, { rupiah: true, includeSen: false })).toBe("nol rupiah");
+  });
+});

@@ -137,6 +137,12 @@ export namespace PPh21 {
     if (!Number.isFinite(monthlyGross) || monthlyGross < 0) {
       throw new RangeError(`PPh21.calc: monthlyGross must be non-negative, got ${monthlyGross}`);
     }
+    if (!Number.isFinite(bpjsKesehatan) || bpjsKesehatan < 0) {
+      throw new RangeError(`PPh21.calc: bpjsKesehatan must be non-negative, got ${bpjsKesehatan}`);
+    }
+    if (!Number.isFinite(bpjsKetenagakerjaan) || bpjsKetenagakerjaan < 0) {
+      throw new RangeError(`PPh21.calc: bpjsKetenagakerjaan must be non-negative, got ${bpjsKetenagakerjaan}`);
+    }
 
     const annualGross = monthlyGross * 12;
 
