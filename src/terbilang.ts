@@ -96,8 +96,14 @@ export function terbilang(value: number, options: TerbilangOptions = {}): string
 
   const negative = value < 0;
   const abs = Math.abs(value);
-  const whole = BigInt(Math.trunc(abs));
-  const fractional = Math.round((abs - Math.trunc(abs)) * 100);
+  let whole = BigInt(Math.trunc(abs));
+  let fractional = Math.round((abs - Math.trunc(abs)) * 100);
+
+  // .995 and up rounds to 100 sen, which is one more rupiah
+  if (rupiah && includeSen && fractional === 100) {
+    whole += 1n;
+    fractional = 0;
+  }
 
   // A value that renders as zero (e.g. -0.4 without sen) carries no minus.
   const rendersZero = whole === 0n && (!rupiah || !includeSen || fractional === 0);

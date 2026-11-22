@@ -69,7 +69,7 @@ export function parseIDR(input: string): number | null {
   if (!s) return null;
 
   const negative = s.startsWith("-");
-  if (negative) s = s.slice(1).trim();
+  if (negative || s.startsWith("+")) s = s.slice(1).trim();
 
   // Strip currency prefix/suffix
   s = s.replace(/^rp\.?\s*/i, "").replace(/\s*rupiah$/i, "").trim();
@@ -107,7 +107,7 @@ export function parseIDR(input: string): number | null {
 
   // Strict numeric shape only: rejects hex ("0x1A"), exponents ("1e3"),
   // stray signs ("--1000") and other Number() leniencies.
-  if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+  if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(normalized)) return null;
 
   const n = Number(normalized);
   if (!Number.isFinite(n)) return null;

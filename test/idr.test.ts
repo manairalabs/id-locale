@@ -85,3 +85,16 @@ describe("parseIDR — strictness and price notation (issue #3)", () => {
     expect(parseIDR("Rp 10.000,-")).toBe(10000);
   });
 });
+
+
+describe("parseIDR compatibility with ordinary signed and fractional input", () => {
+  it("retains a single positive sign and leading comma decimal", () => {
+    expect(parseIDR("+1000")).toBe(1000);
+    expect(parseIDR(",5")).toBe(0.5);
+    expect(parseIDR("-Rp ,50")).toBe(-0.5);
+  });
+
+  it("rejects mixed and repeated signs", () => {
+    for (const value of ["--1000", "++1000", "-+1000", "+-1000"]) expect(parseIDR(value)).toBeNull();
+  });
+});

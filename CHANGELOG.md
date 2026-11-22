@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- NIK rejects impossible calendar dates; terbilang supports kuadriliun and omits a minus on rendered zero. IDR formatting accepts lone decimal minima and suppresses signed zero; parsing rejects malformed numeric inputs while preserving ordinary signed/fractional forms and Indonesian price suffixes. Phone normalization rejects explicitly foreign country codes and removes redundant trunk zeros; BPJS contributions reject invalid values.
+
+- `terbilang(n, { rupiah: true })` carries 100 sen into the next rupiah (`1.999` → `"dua rupiah"`).
+
 ## [0.1.0] - 2026-04-17
 
 ### Added

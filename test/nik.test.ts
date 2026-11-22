@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { validateNIK, parseNIK } from "../src/nik.js";
 
 describe("validateNIK", () => {
@@ -58,6 +58,8 @@ describe("validateNIK — real calendar dates (issue #3)", () => {
 });
 
 describe("parseNIK — century pivot (issue #3)", () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-22T00:00:00Z")); });
+  afterEach(() => vi.useRealTimers());
   it("a birth date in the future resolves to the previous century", () => {
     const parsed = parseNIK("3201010112260001"); // 1 Dec, YY=26
     expect(parsed?.birthDate.getUTCFullYear()).toBe(1926);
